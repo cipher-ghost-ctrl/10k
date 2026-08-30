@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch — Lead Pipeline</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#0a0a0b;
+    --panel:#141416;
+    --panel-2:#1c1c1f;
+    --border:#2a2a2e;
+    --text:#eeeeef;
+    --text-dim:#9a9a9f;
+    --gold:#c9a84c;
+    --blue:#5f8fd9;
+    --green:#5fae7b;
+    --red:#c96a5c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px;}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:24px;
+  }
+  h1{
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+    font-size:2rem;
+    margin:0 0 4px;
+  }
+  .date{
+    font-family:'DM Mono',monospace;
+    font-size:0.85rem;
+    color:var(--text-dim);
+  }
+  .stats{display:flex;gap:18px;font-family:'DM Mono',monospace;font-size:0.85rem;}
+  .stats span b{color:var(--gold);font-weight:500;}
+
+  .load-panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:24px;
+  }
+  .load-panel summary{
+    cursor:pointer;
+    font-size:0.9rem;
+    color:var(--text-dim);
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .load-panel summary::-webkit-details-marker{display:none;}
+  .load-panel summary::before{content:"+";color:var(--gold);font-family:'DM Mono',monospace;}
+  .load-panel[open] summary::before{content:"–";}
+  textarea{
+    width:100%;
+    min-height:140px;
+    margin-top:12px;
+    background:var(--bg);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px;
+    font-family:'DM Mono',monospace;
+    font-size:0.8rem;
+    resize:vertical;
+  }
+  .load-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  button{
+    font-family:'DM Sans',sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    border-radius:7px;
+    padding:9px 16px;
+    cursor:pointer;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--text);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  button:hover{border-color:var(--gold);}
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  button.primary{background:var(--gold);color:#1a1408;border-color:var(--gold);}
+  button.primary:hover{filter:brightness(1.08);}
+  button.ghost{background:transparent;}
+  .error{color:var(--red);font-size:0.8rem;margin-top:8px;display:none;}
+
+  .filters{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .chip{
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    padding:6px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    color:var(--text-dim);
+    cursor:pointer;
+  }
+  .chip.active{border-color:var(--gold);color:var(--gold);}
+
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--text-dim);
+    border:1px dashed var(--border);
+    border-radius:10px;
+  }
+  .empty p{margin:6px 0;font-size:0.9rem;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .card.status-contacted{border-left:3px solid var(--blue);}
+  .card.status-replied{border-left:3px solid var(--gold);}
+  .card.status-won{border-left:3px solid var(--green);}
+  .card.status-dead{opacity:0.5;}
+
+  .card-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .card-name{font-size:1.05rem;font-weight:600;margin:0;}
+  .card-meta{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-dim);margin-top:3px;}
+  .badge{
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem;
+    padding:3px 9px;
+    border-radius:999px;
+    height:fit-content;
+    white-space:nowrap;
+  }
+  .badge.none{background:rgba(201,106,92,0.15);color:var(--red);}
+  .badge.outdated{background:rgba(201,168,76,0.15);color:var(--gold);}
+  .badge.unclear{background:rgba(154,154,159,0.15);color:var(--text-dim);}
+
+  .angle{font-size:0.88rem;color:var(--text);margin:12px 0;line-height:1.5;}
+  .angle b{color:var(--text-dim);font-weight:500;font-size:0.75rem;font-family:'DM Mono',monospace;display:block;margin-bottom:3px;}
+
+  .drafts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+  @media (max-width:560px){.drafts{grid-template-columns:1fr;}}
+  .draft{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 12px;
+  }
+  .draft b{font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--text-dim);display:block;margin-bottom:5px;}
+  .draft p{font-size:0.8rem;margin:0 0 8px;line-height:1.45;max-height:5.8em;overflow:auto;}
+  .draft button{font-size:0.75rem;padding:5px 10px;}
+
+  .card-actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px;}
+  select{
+    font-family:'DM Sans',sans-serif;
+    font-size:0.8rem;
+    background:var(--panel-2);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:7px 10px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Batch</h1>
+      <div class="date" id="batchDate">No batch loaded</div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <details class="load-panel" id="loadPanel">
+    <summary>Load a new batch</summary>
+    <textarea id="jsonInput" placeholder='Paste the JSON output from the nightly Cowork task here...'></textarea>
+    <div class="load-row">
+      <button class="primary" onclick="loadBatch()">Load batch</button>
+      <button class="ghost" onclick="clearBatch()">Clear stored batch</button>
+    </div>
+    <div class="error" id="loadError">Couldn't read that as valid JSON — check it matches the expected format.</div>
+  </details>
+
+  <div class="filters" id="filters" style="display:none;"></div>
+
+  <div id="leadList"></div>
+  <div class="empty" id="emptyState">
+    <p>No batch loaded yet.</p>
+    <p>Open "Load a new batch" above and paste in the JSON from tonight's run.</p>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'leadBatch';
+  const STATUS_KEY = 'leadStatuses';
+  let currentFilter = 'all';
+
+  function getStatuses(){
+    try { return JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'); }
+    catch(e){ return {}; }
+  }
+  function setStatus(id, status){
+    const s = getStatuses();
+    s[id] = status;
+    localStorage.setItem(STATUS_KEY, JSON.stringify(s));
+    render();
+  }
+
+  function loadBatch(){
+    const raw = document.getElementById('jsonInput').value.trim();
+    const errEl = document.getElementById('loadError');
+    try{
+      const data = JSON.parse(raw);
+      if(!data.leads || !Array.isArray(data.leads)) throw new Error('missing leads array');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      errEl.style.display = 'none';
+      document.getElementById('loadPanel').open = false;
+      document.getElementById('jsonInput').value = '';
+      render();
+    }catch(e){
+      errEl.style.display = 'block';
+    }
+  }
+
+  function clearBatch(){
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STATUS_KEY);
+    render();
+  }
+
+  function copyText(btn, text){
+    navigator.clipboard.writeText(text).then(()=>{
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(()=>{ btn.textContent = original; }, 1400);
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function render(){
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const listEl = document.getElementById('leadList');
+    const emptyEl = document.getElementById('emptyState');
+    const filtersEl = document.getElementById('filters');
+    const dateEl = document.getElementById('batchDate');
+    const statsEl = document.getElementById('stats');
+
+    if(!stored){
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      filtersEl.style.display = 'none';
+      dateEl.textContent = 'No batch loaded';
+      statsEl.innerHTML = '';
+      return;
+    }
+
+    const data = JSON.parse(stored);
+    const statuses = getStatuses();
+    dateEl.textContent = data.batchDate ? ('Batch — ' + data.batchDate) : 'Batch';
+
+    const counts = {new:0, contacted:0, replied:0, won:0, dead:0};
+    data.leads.forEach(l=>{
+      const st = statuses[l.id] || 'new';
+      counts[st] = (counts[st]||0) + 1;
+    });
+    statsEl.innerHTML =
+      `<span><b>${data.leads.length}</b> total</span>` +
+      `<span><b>${counts.contacted}</b> contacted</span>` +
+      `<span><b>${counts.replied}</b> replied</span>` +
+      `<span><b>${counts.won}</b> won</span>`;
+
+    const categories = ['all', ...new Set(data.leads.map(l=>l.category).filter(Boolean))];
+    filtersEl.style.display = 'flex';
+    filtersEl.innerHTML = categories.map(c =>
+      `<span class="chip ${c===currentFilter?'active':''}" onclick="setFilter('${c.replace(/'/g,"\\'")}')">${escapeHtml(c)}</span>`
+    ).join('');
+
+    const visible = data.leads.filter(l => currentFilter==='all' || l.category===currentFilter);
+
+    if(visible.length === 0){
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      emptyEl.querySelector('p').textContent = 'No leads in this category.';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    listEl.innerHTML = visible.map(l=>{
+      const status = statuses[l.id] || 'new';
+      return `
+      <div class="card status-${status}">
+        <div class="card-top">
+          <div>
+            <p class="card-name">${escapeHtml(l.name)}</p>
+            <div class="card-meta">${escapeHtml(l.category||'')} · ${escapeHtml(l.address||'')}${l.phone ? ' · ' + escapeHtml(l.phone) : ''}${l.rating ? ' · ' + l.rating + '★ (' + (l.reviewCount||0) + ')' : ''}</div>
+          </div>
+          <span class="badge ${l.websiteStatus||'unclear'}">${(l.websiteStatus||'unclear').replace('_',' ')}</span>
+        </div>
+        <div class="angle"><b>Angle</b>${escapeHtml(l.angle||'')}</div>
+        <div class="drafts">
+          <div class="draft">
+            <b>Email draft</b>
+            <p>${escapeHtml(l.emailDraft||'')}</p>
+            <button onclick="copyText(this, ${JSON.stringify(l.emailDraft||'')})">Copy email</button>
+          </div>
+          <div class="draft">
+            <b>DM draft</b>
+            <p>${escapeHtml(l.dmDraft||'')}</p>
+            <button onclick="copyText(this, ${JSON.stringify(l.dmDraft||'')})">Copy DM</button>
+          </div>
+        </div>
+        <div class="card-actions">
+          <select onchange="setStatus('${l.id}', this.value)">
+            <option value="new" ${status==='new'?'selected':''}>New</option>
+            <option value="contacted" ${status==='contacted'?'selected':''}>Contacted</option>
+            <option value="replied" ${status==='replied'?'selected':''}>Replied</option>
+            <option value="won" ${status==='won'?'selected':''}>Won</option>
+            <option value="dead" ${status==='dead'?'selected':''}>Dead</option>
+          </select>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function setFilter(c){
+    currentFilter = c;
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>
