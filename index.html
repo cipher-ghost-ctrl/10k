@@ -50,7 +50,7 @@
     font-size:0.85rem;
     color:var(--text-dim);
   }
-  .stats{display:flex;gap:18px;font-family:'DM Mono',monospace;font-size:0.85rem;}
+  .stats{display:flex;gap:16px;font-family:'DM Mono',monospace;font-size:0.8rem;flex-wrap:wrap;}
   .stats span b{color:var(--gold);font-weight:500;}
 
   .load-panel{
@@ -85,7 +85,8 @@
     font-size:0.8rem;
     resize:vertical;
   }
-  .load-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .load-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+  .load-note{font-size:0.75rem;color:var(--text-dim);margin-top:8px;}
   button{
     font-family:'DM Sans',sans-serif;
     font-size:0.85rem;
@@ -103,14 +104,18 @@
   button.primary{background:var(--gold);color:#1a1408;border-color:var(--gold);}
   button.primary:hover{filter:brightness(1.08);}
   button.ghost{background:transparent;}
+  button.ghost.danger:hover{border-color:var(--red);color:var(--red);}
   .error{color:var(--red);font-size:0.8rem;margin-top:8px;display:none;}
 
-  .filters{
+  .toolbar{
     display:flex;
-    gap:8px;
+    justify-content:space-between;
+    align-items:center;
     flex-wrap:wrap;
-    margin-bottom:20px;
+    gap:12px;
+    margin-bottom:16px;
   }
+  .filters{display:flex;gap:8px;flex-wrap:wrap;}
   .chip{
     font-family:'DM Mono',monospace;
     font-size:0.75rem;
@@ -122,6 +127,18 @@
     cursor:pointer;
   }
   .chip.active{border-color:var(--gold);color:var(--gold);}
+
+  .hide-toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.78rem;
+    color:var(--text-dim);
+    font-family:'DM Mono',monospace;
+    cursor:pointer;
+    user-select:none;
+  }
+  .hide-toggle input{accent-color:var(--gold);cursor:pointer;}
 
   .empty{
     text-align:center;
@@ -147,6 +164,15 @@
   .card-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
   .card-name{font-size:1.05rem;font-weight:600;margin:0;}
   .card-meta{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-dim);margin-top:3px;}
+  .card-meta a{color:var(--blue);text-decoration:none;}
+  .card-meta a:hover{text-decoration:underline;}
+  .card-meta.contact{margin-top:5px;}
+  .notes{margin:10px 0;}
+  .note{font-size:0.85rem;color:var(--text);line-height:1.5;margin-bottom:8px;}
+  .note:last-child{margin-bottom:0;}
+  .note b{color:var(--text-dim);font-weight:500;font-size:0.75rem;font-family:'DM Mono',monospace;display:block;margin-bottom:3px;}
+  .note a{color:var(--blue);}
+  .badge-group{display:flex;gap:6px;align-items:center;}
   .badge{
     font-family:'DM Mono',monospace;
     font-size:0.7rem;
@@ -158,6 +184,7 @@
   .badge.none{background:rgba(201,106,92,0.15);color:var(--red);}
   .badge.outdated{background:rgba(201,168,76,0.15);color:var(--gold);}
   .badge.unclear{background:rgba(154,154,159,0.15);color:var(--text-dim);}
+  .badge.niche{background:rgba(95,143,217,0.15);color:var(--blue);}
 
   .angle{font-size:0.88rem;color:var(--text);margin:12px 0;line-height:1.5;}
   .angle b{color:var(--text-dim);font-weight:500;font-size:0.75rem;font-family:'DM Mono',monospace;display:block;margin-bottom:3px;}
@@ -171,8 +198,20 @@
     padding:10px 12px;
   }
   .draft b{font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--text-dim);display:block;margin-bottom:5px;}
-  .draft p{font-size:0.8rem;margin:0 0 8px;line-height:1.45;max-height:5.8em;overflow:auto;}
+  .draft p{font-size:0.8rem;margin:0 0 8px;line-height:1.45;max-height:5.8em;overflow:hidden;}
+  .draft p.expanded{max-height:none;}
+  .draft-actions{display:flex;gap:8px;align-items:center;}
   .draft button{font-size:0.75rem;padding:5px 10px;}
+  .linklike{
+    background:none;
+    border:none;
+    padding:0;
+    color:var(--text-dim);
+    text-decoration:underline;
+    font-size:0.72rem;
+    cursor:pointer;
+  }
+  .linklike:hover{color:var(--gold);}
 
   .card-actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px;}
   select{
@@ -185,6 +224,57 @@
     padding:7px 10px;
   }
 
+  .sent-toggle{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:0.72rem;
+    color:var(--text-dim);
+    font-family:'DM Mono',monospace;
+    cursor:pointer;
+    user-select:none;
+  }
+  .sent-toggle input{accent-color:var(--gold);cursor:pointer;}
+
+  .completed-toggle{
+    margin-top:28px;
+  }
+  .completed-toggle summary{
+    cursor:pointer;
+    font-family:'Playfair Display',serif;
+    font-size:1.2rem;
+    font-weight:600;
+    list-style:none;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:16px;
+  }
+  .completed-toggle summary::-webkit-details-marker{display:none;}
+  .completed-toggle summary::before{content:"▾ ";color:var(--gold);}
+  .completed-toggle[open] summary::before{content:"▴ ";}
+
+  .debrief{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+  }
+  .debrief label{
+    font-size:0.7rem;
+    font-family:'DM Mono',monospace;
+    color:var(--text-dim);
+    display:block;
+    margin-bottom:5px;
+  }
+  .debrief textarea{
+    min-height:64px;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.82rem;
+    margin-top:0;
+  }
+  .debrief-actions{margin-top:8px;}
+  .debrief-actions button{font-size:0.78rem;}
+
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important;}
   }
@@ -196,7 +286,7 @@
   <header>
     <div>
       <h1>Batch</h1>
-      <div class="date" id="batchDate">No batch loaded</div>
+      <div class="date" id="batchDate">No leads yet</div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -205,148 +295,189 @@
     <summary>Load a new batch</summary>
     <textarea id="jsonInput" placeholder='Paste the JSON output from the nightly Cowork task here...'></textarea>
     <div class="load-row">
-      <button class="primary" onclick="loadBatch()">Load batch</button>
-      <button class="ghost" onclick="clearBatch()">Clear stored batch</button>
+      <button class="primary" data-action="load">Load batch</button>
+      <button class="ghost danger" data-action="clear">Clear all leads</button>
     </div>
+    <div class="load-note">New leads are added to your running pipeline. If a lead's id matches one already saved, its details refresh but its status is left alone.</div>
     <div class="error" id="loadError">Couldn't read that as valid JSON — check it matches the expected format.</div>
   </details>
 
-  <div class="filters" id="filters" style="display:none;"></div>
+  <div class="toolbar" id="toolbar" style="display:none;">
+    <div class="filters" id="filters"></div>
+    <label class="hide-toggle">
+      <input type="checkbox" id="hideArchived">
+      Hide dead &amp; won
+    </label>
+  </div>
 
   <div id="leadList"></div>
+  <div id="completedSection"></div>
   <div class="empty" id="emptyState">
-    <p>No batch loaded yet.</p>
+    <p>No leads yet.</p>
     <p>Open "Load a new batch" above and paste in the JSON from tonight's run.</p>
   </div>
 
 </div>
 
 <script>
-  const STORAGE_KEY = 'leadBatch';
-  const STATUS_KEY = 'leadStatuses';
-  let currentFilter = 'all';
+  const LEADS_KEY = 'leadRecords_v2';
+  const LAST_BATCH_KEY = 'lastBatchDate';
+  const HIDE_ARCHIVED_KEY = 'hideArchived';
+  const STATUS_RANK = {new:0, contacted:1, replied:2, won:3, dead:4};
+  let currentNiche = 'all';
 
-  function getStatuses(){
-    try { return JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'); }
+  function getRecords(){
+    try { return JSON.parse(localStorage.getItem(LEADS_KEY) || '{}'); }
     catch(e){ return {}; }
   }
-  function setStatus(id, status){
-    const s = getStatuses();
-    s[id] = status;
-    localStorage.setItem(STATUS_KEY, JSON.stringify(s));
-    render();
+  function saveRecords(r){
+    localStorage.setItem(LEADS_KEY, JSON.stringify(r));
   }
 
   function loadBatch(){
-    const raw = document.getElementById('jsonInput').value.trim();
+    const input = document.getElementById('jsonInput');
+    const raw = input.value.trim();
     const errEl = document.getElementById('loadError');
     try{
       const data = JSON.parse(raw);
       if(!data.leads || !Array.isArray(data.leads)) throw new Error('missing leads array');
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      const records = getRecords();
+      data.leads.forEach(l=>{
+        if(!l.id) return;
+        const existing = records[l.id];
+        if(existing){
+          records[l.id] = Object.assign({}, existing, l, {
+            status: existing.status,
+            dateAdded: existing.dateAdded,
+            lastSeenBatch: data.batchDate || existing.lastSeenBatch || null,
+            emailSent: existing.emailSent || false,
+            dmSent: existing.dmSent || false,
+            debrief: existing.debrief || ''
+          });
+        } else {
+          records[l.id] = Object.assign({}, l, {
+            status: 'new',
+            dateAdded: data.batchDate || null,
+            lastSeenBatch: data.batchDate || null,
+            emailSent: false,
+            dmSent: false,
+            debrief: ''
+          });
+        }
+      });
+      saveRecords(records);
+      if(data.batchDate) localStorage.setItem(LAST_BATCH_KEY, data.batchDate);
+
       errEl.style.display = 'none';
       document.getElementById('loadPanel').open = false;
-      document.getElementById('jsonInput').value = '';
+      input.value = '';
       render();
     }catch(e){
       errEl.style.display = 'block';
     }
   }
 
-  function clearBatch(){
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STATUS_KEY);
+  function clearAll(){
+    if(!confirm('This clears every saved lead and status, not just the last batch. Continue?')) return;
+    localStorage.removeItem(LEADS_KEY);
+    localStorage.removeItem(LAST_BATCH_KEY);
     render();
-  }
-
-  function copyText(btn, text){
-    navigator.clipboard.writeText(text).then(()=>{
-      const original = btn.textContent;
-      btn.textContent = 'Copied';
-      setTimeout(()=>{ btn.textContent = original; }, 1400);
-    });
   }
 
   function escapeHtml(str){
     const d = document.createElement('div');
-    d.textContent = str || '';
+    d.textContent = str == null ? '' : String(str);
     return d.innerHTML;
   }
 
-  function render(){
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const listEl = document.getElementById('leadList');
-    const emptyEl = document.getElementById('emptyState');
-    const filtersEl = document.getElementById('filters');
-    const dateEl = document.getElementById('batchDate');
-    const statsEl = document.getElementById('stats');
+  function niceNiche(n){
+    const map = {trades:'Trades', retail:'Retail', health_fitness:'Health & Fitness'};
+    return map[n] || 'Other';
+  }
 
-    if(!stored){
-      listEl.innerHTML = '';
-      emptyEl.style.display = 'block';
-      filtersEl.style.display = 'none';
-      dateEl.textContent = 'No batch loaded';
-      statsEl.innerHTML = '';
-      return;
-    }
+  function buildFollowupPrompt(l){
+    const sentParts = [];
+    if(l.emailSent && l.emailDraft) sentParts.push('Email sent:\n"""' + l.emailDraft + '"""');
+    if(l.dmSent && l.dmDraft) sentParts.push('DM sent:\n"""' + l.dmDraft + '"""');
+    const sentBlock = sentParts.length ? sentParts.join('\n\n') : 'No draft on file — sent something else or went off-script.';
+    const debriefBlock = (l.debrief && l.debrief.trim()) ? l.debrief.trim() : 'No reply yet / nothing noted.';
 
-    const data = JSON.parse(stored);
-    const statuses = getStatuses();
-    dateEl.textContent = data.batchDate ? ('Batch — ' + data.batchDate) : 'Batch';
+    return 'Lead: ' + (l.name||'') + ' (' + (l.category||'uncategorized') + ', ' + (l.address||'no address on file') + ')\n' +
+      'Original angle: ' + (l.angle||'n/a') + '\n\n' +
+      sentBlock + '\n\n' +
+      'What they said back:\n' + debriefBlock + '\n\n' +
+      'What should I say or do next with this lead?';
+  }
 
-    const counts = {new:0, contacted:0, replied:0, won:0, dead:0};
-    data.leads.forEach(l=>{
-      const st = statuses[l.id] || 'new';
-      counts[st] = (counts[st]||0) + 1;
-    });
-    statsEl.innerHTML =
-      `<span><b>${data.leads.length}</b> total</span>` +
-      `<span><b>${counts.contacted}</b> contacted</span>` +
-      `<span><b>${counts.replied}</b> replied</span>` +
-      `<span><b>${counts.won}</b> won</span>`;
+  function renderCard(l, completed){
+    const status = l.status || 'new';
+    const id = escapeHtml(l.id);
 
-    const categories = ['all', ...new Set(data.leads.map(l=>l.category).filter(Boolean))];
-    filtersEl.style.display = 'flex';
-    filtersEl.innerHTML = categories.map(c =>
-      `<span class="chip ${c===currentFilter?'active':''}" onclick="setFilter('${c.replace(/'/g,"\\'")}')">${escapeHtml(c)}</span>`
-    ).join('');
+    const metaLine1 = [
+      l.category ? escapeHtml(l.category) : null,
+      l.address ? escapeHtml(l.address) : null,
+      l.phone ? `<a href="tel:${escapeHtml(l.phone)}">${escapeHtml(l.phone)}</a>` : null,
+      l.rating != null ? `${escapeHtml(l.rating)}★ (${escapeHtml(l.reviewCount||0)})` : null
+    ].filter(Boolean).join(' · ');
 
-    const visible = data.leads.filter(l => currentFilter==='all' || l.category===currentFilter);
+    const metaLine2 = [
+      l.ownerName ? `Owner: ${escapeHtml(l.ownerName)}` : null,
+      l.email ? `<a href="mailto:${escapeHtml(l.email)}">${escapeHtml(l.email)}</a>` : null,
+      l.sourceUrl ? `<a href="${escapeHtml(l.sourceUrl)}" target="_blank" rel="noopener">source</a>` : null
+    ].filter(Boolean).join(' · ');
 
-    if(visible.length === 0){
-      listEl.innerHTML = '';
-      emptyEl.style.display = 'block';
-      emptyEl.querySelector('p').textContent = 'No leads in this category.';
-      return;
-    }
-    emptyEl.style.display = 'none';
+    const notesHtml = [
+      l.siteQuality ? `<div class="note"><b>Existing site</b>${escapeHtml(l.siteQuality)}${l.siteUrl ? ' — <a href="' + escapeHtml(l.siteUrl) + '" target="_blank" rel="noopener">view site</a>' : ''}</div>` : '',
+      l.reviewNotes ? `<div class="note"><b>Reviews</b>${escapeHtml(l.reviewNotes)}</div>` : ''
+    ].join('');
 
-    listEl.innerHTML = visible.map(l=>{
-      const status = statuses[l.id] || 'new';
-      return `
+    const debriefHtml = completed ? `
+        <div class="debrief">
+          <label for="debrief-${id}">What did they say? (optional notes)</label>
+          <textarea id="debrief-${id}" data-action="debrief" data-id="${id}" placeholder="Paste or type what they replied, or how the conversation went...">${escapeHtml(l.debrief||'')}</textarea>
+          <div class="debrief-actions">
+            <button data-action="gen-prompt" data-id="${id}">Copy follow-up prompt</button>
+          </div>
+        </div>` : '';
+
+    return `
       <div class="card status-${status}">
         <div class="card-top">
           <div>
             <p class="card-name">${escapeHtml(l.name)}</p>
-            <div class="card-meta">${escapeHtml(l.category||'')} · ${escapeHtml(l.address||'')}${l.phone ? ' · ' + escapeHtml(l.phone) : ''}${l.rating ? ' · ' + l.rating + '★ (' + (l.reviewCount||0) + ')' : ''}</div>
+            <div class="card-meta">${metaLine1}</div>
+            ${metaLine2 ? `<div class="card-meta contact">${metaLine2}</div>` : ''}
           </div>
-          <span class="badge ${l.websiteStatus||'unclear'}">${(l.websiteStatus||'unclear').replace('_',' ')}</span>
+          <div class="badge-group">
+            <span class="badge niche">${escapeHtml(niceNiche(l.niche))}</span>
+            <span class="badge ${l.websiteStatus||'unclear'}">${escapeHtml((l.websiteStatus||'unclear').replace('_',' '))}</span>
+          </div>
         </div>
+        ${notesHtml ? `<div class="notes">${notesHtml}</div>` : ''}
         <div class="angle"><b>Angle</b>${escapeHtml(l.angle||'')}</div>
         <div class="drafts">
           <div class="draft">
             <b>Email draft</b>
-            <p>${escapeHtml(l.emailDraft||'')}</p>
-            <button onclick="copyText(this, ${JSON.stringify(l.emailDraft||'')})">Copy email</button>
+            <p id="draft-email-${id}">${escapeHtml(l.emailDraft||'')}</p>
+            <div class="draft-actions">
+              <button data-action="copy" data-id="${id}" data-field="emailDraft">Copy email</button>
+              <button class="linklike" data-action="expand" data-target="draft-email-${id}">More</button>
+              <label class="sent-toggle"><input type="checkbox" data-action="toggle-sent" data-id="${id}" data-channel="email" ${l.emailSent?'checked':''}> Sent</label>
+            </div>
           </div>
           <div class="draft">
             <b>DM draft</b>
-            <p>${escapeHtml(l.dmDraft||'')}</p>
-            <button onclick="copyText(this, ${JSON.stringify(l.dmDraft||'')})">Copy DM</button>
+            <p id="draft-dm-${id}">${escapeHtml(l.dmDraft||'')}</p>
+            <div class="draft-actions">
+              <button data-action="copy" data-id="${id}" data-field="dmDraft">Copy DM</button>
+              <button class="linklike" data-action="expand" data-target="draft-dm-${id}">More</button>
+              <label class="sent-toggle"><input type="checkbox" data-action="toggle-sent" data-id="${id}" data-channel="dm" ${l.dmSent?'checked':''}> Sent</label>
+            </div>
           </div>
         </div>
         <div class="card-actions">
-          <select onchange="setStatus('${l.id}', this.value)">
+          <select data-id="${id}">
             <option value="new" ${status==='new'?'selected':''}>New</option>
             <option value="contacted" ${status==='contacted'?'selected':''}>Contacted</option>
             <option value="replied" ${status==='replied'?'selected':''}>Replied</option>
@@ -354,14 +485,180 @@
             <option value="dead" ${status==='dead'?'selected':''}>Dead</option>
           </select>
         </div>
+        ${debriefHtml}
       </div>`;
-    }).join('');
   }
 
-  function setFilter(c){
-    currentFilter = c;
-    render();
+  function render(){
+    const records = getRecords();
+    const ids = Object.keys(records);
+    const listEl = document.getElementById('leadList');
+    const emptyEl = document.getElementById('emptyState');
+    const toolbarEl = document.getElementById('toolbar');
+    const filtersEl = document.getElementById('filters');
+    const dateEl = document.getElementById('batchDate');
+    const statsEl = document.getElementById('stats');
+
+    const lastBatch = localStorage.getItem(LAST_BATCH_KEY);
+    dateEl.textContent = lastBatch ? ('Last batch loaded — ' + lastBatch) : (ids.length ? 'Batch' : 'No leads yet');
+
+    if(ids.length === 0){
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      emptyEl.querySelector('p:first-child').textContent = 'No leads yet.';
+      toolbarEl.style.display = 'none';
+      statsEl.innerHTML = '';
+      return;
+    }
+
+    const counts = {new:0, contacted:0, replied:0, won:0, dead:0};
+    let sentCount = 0;
+    ids.forEach(id=>{
+      const st = records[id].status || 'new';
+      counts[st] = (counts[st]||0) + 1;
+      if(records[id].emailSent || records[id].dmSent) sentCount++;
+    });
+    statsEl.innerHTML =
+      `<span><b>${ids.length}</b> total</span>` +
+      `<span><b>${counts.new}</b> new</span>` +
+      `<span><b>${counts.contacted}</b> contacted</span>` +
+      `<span><b>${counts.replied}</b> replied</span>` +
+      `<span><b>${counts.won}</b> won</span>` +
+      `<span><b>${counts.dead}</b> dead</span>` +
+      `<span><b>${sentCount}</b> sent</span>`;
+
+    const niches = ['all', ...new Set(ids.map(id => records[id].niche || 'other'))];
+    toolbarEl.style.display = 'flex';
+    filtersEl.innerHTML = niches.map(n =>
+      `<span class="chip ${n===currentNiche?'active':''}" data-action="filter" data-niche="${escapeHtml(n)}">${n==='all' ? 'All' : escapeHtml(niceNiche(n))}</span>`
+    ).join('');
+
+    const hideArchived = localStorage.getItem(HIDE_ARCHIVED_KEY) === '1';
+    document.getElementById('hideArchived').checked = hideArchived;
+
+    let visible = ids
+      .map(id => records[id])
+      .filter(l => currentNiche === 'all' || (l.niche || 'other') === currentNiche)
+      .filter(l => !(hideArchived && (l.status === 'dead' || l.status === 'won')));
+
+    visible.sort((a,b)=>{
+      const rankDiff = (STATUS_RANK[a.status]||0) - (STATUS_RANK[b.status]||0);
+      if(rankDiff !== 0) return rankDiff;
+      return (b.dateAdded||'').localeCompare(a.dateAdded||'');
+    });
+
+    if(visible.length === 0){
+      listEl.innerHTML = '';
+      document.getElementById('completedSection').innerHTML = '';
+      emptyEl.style.display = 'block';
+      emptyEl.querySelector('p:first-child').textContent = 'No leads match this filter.';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    const notSent = visible.filter(l => !l.emailSent && !l.dmSent);
+    const sentList = visible.filter(l => l.emailSent || l.dmSent);
+
+    listEl.innerHTML = notSent.map(l => renderCard(l, false)).join('')
+      || `<div class="empty"><p>Everything in this filter has been sent — check "Completed" below.</p></div>`;
+
+    const completedEl = document.getElementById('completedSection');
+    if(sentList.length === 0){
+      completedEl.innerHTML = '';
+    } else {
+      completedEl.innerHTML = `
+        <details class="completed-toggle" open>
+          <summary>Completed (${sentList.length})</summary>
+          ${sentList.map(l => renderCard(l, true)).join('')}
+        </details>`;
+    }
   }
+
+  // Event delegation — no inline onclick/onchange anywhere, so nothing breaks
+  // on quote characters inside names, categories, or draft text.
+  document.addEventListener('click', e=>{
+    const chip = e.target.closest('.chip');
+    if(chip){
+      currentNiche = chip.dataset.niche;
+      render();
+      return;
+    }
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const action = btn.dataset.action;
+
+    if(action === 'load'){
+      loadBatch();
+    } else if(action === 'clear'){
+      clearAll();
+    } else if(action === 'copy'){
+      const records = getRecords();
+      const rec = records[btn.dataset.id];
+      if(rec){
+        navigator.clipboard.writeText(rec[btn.dataset.field] || '').then(()=>{
+          const original = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(()=>{ btn.textContent = original; }, 1400);
+        });
+      }
+    } else if(action === 'expand'){
+      const target = document.getElementById(btn.dataset.target);
+      if(target){
+        target.classList.toggle('expanded');
+        btn.textContent = target.classList.contains('expanded') ? 'Less' : 'More';
+      }
+    } else if(action === 'gen-prompt'){
+      const records = getRecords();
+      const rec = records[btn.dataset.id];
+      if(rec){
+        navigator.clipboard.writeText(buildFollowupPrompt(rec)).then(()=>{
+          const original = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(()=>{ btn.textContent = original; }, 1400);
+        });
+      }
+    }
+  });
+
+  // Delegated on document (not just #leadList) since the same select/checkbox/
+  // textarea markup now also renders inside the Completed section.
+  document.addEventListener('change', e=>{
+    if(e.target.matches('select[data-id]')){
+      const records = getRecords();
+      const rec = records[e.target.dataset.id];
+      if(rec){
+        rec.status = e.target.value;
+        saveRecords(records);
+        render();
+      }
+    } else if(e.target.matches('input[data-action="toggle-sent"]')){
+      const records = getRecords();
+      const rec = records[e.target.dataset.id];
+      if(rec){
+        const field = e.target.dataset.channel === 'email' ? 'emailSent' : 'dmSent';
+        rec[field] = e.target.checked;
+        saveRecords(records);
+        render();
+      }
+    } else if(e.target.id === 'hideArchived'){
+      localStorage.setItem(HIDE_ARCHIVED_KEY, e.target.checked ? '1' : '0');
+      render();
+    }
+  });
+
+  // Debrief notes save on every keystroke but deliberately do NOT call render()
+  // here — re-rendering the list would rebuild the textarea and drop your
+  // cursor position mid-sentence.
+  document.addEventListener('input', e=>{
+    if(e.target.matches('textarea[data-action="debrief"]')){
+      const records = getRecords();
+      const rec = records[e.target.dataset.id];
+      if(rec){
+        rec.debrief = e.target.value;
+        saveRecords(records);
+      }
+    }
+  });
 
   render();
 </script>
