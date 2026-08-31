@@ -466,7 +466,8 @@
 
     const notesHtml = [
       l.siteQuality ? `<div class="note"><b>Existing site</b>${escapeHtml(l.siteQuality)}${l.siteUrl ? ' — <a href="' + escapeHtml(l.siteUrl) + '" target="_blank" rel="noopener">view site</a>' : ''}</div>` : '',
-      l.reviewNotes ? `<div class="note"><b>Reviews</b>${escapeHtml(l.reviewNotes)}</div>` : ''
+      l.reviewNotes ? `<div class="note"><b>Reviews</b>${escapeHtml(l.reviewNotes)}</div>` : '',
+      (l.suggestedBuildPrice || l.suggestedMaintenance) ? `<div class="note"><b>Suggested pricing</b>${[l.suggestedBuildPrice ? 'Build: ' + escapeHtml(l.suggestedBuildPrice) : null, l.suggestedMaintenance ? 'Maintenance: ' + escapeHtml(l.suggestedMaintenance) : null].filter(Boolean).join(' · ')}</div>` : ''
     ].join('');
 
     const debriefHtml = completed ? `
