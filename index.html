@@ -237,22 +237,24 @@
   }
   .sent-toggle input{accent-color:var(--gold);cursor:pointer;}
 
-  .completed-toggle{
-    margin-top:28px;
-  }
-  .completed-toggle summary{
-    cursor:pointer;
-    font-family:'Playfair Display',serif;
-    font-size:1.2rem;
-    font-weight:600;
-    list-style:none;
-    padding-bottom:12px;
-    border-bottom:1px solid var(--border);
+  .view-tabs{
+    display:flex;
+    gap:8px;
     margin-bottom:16px;
   }
-  .completed-toggle summary::-webkit-details-marker{display:none;}
-  .completed-toggle summary::before{content:"▾ ";color:var(--gold);}
-  .completed-toggle[open] summary::before{content:"▴ ";}
+  .view-tab{
+    font-family:'DM Sans',sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    padding:9px 18px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    color:var(--text-dim);
+    cursor:pointer;
+  }
+  .view-tab:hover{border-color:var(--gold);}
+  .view-tab.active{background:var(--gold);color:#1a1408;border-color:var(--gold);font-weight:600;}
 
   .debrief{
     margin-top:12px;
@@ -302,6 +304,11 @@
     <div class="error" id="loadError">Couldn't read that as valid JSON — check it matches the expected format.</div>
   </details>
 
+  <div class="view-tabs" id="viewTabs" style="display:none;">
+    <button class="view-tab active" data-action="switch-view" data-view="todo">To send</button>
+    <button class="view-tab" data-action="switch-view" data-view="completed">Completed</button>
+  </div>
+
   <div class="toolbar" id="toolbar" style="display:none;">
     <div class="filters" id="filters"></div>
     <label class="hide-toggle">
@@ -311,7 +318,6 @@
   </div>
 
   <div id="leadList"></div>
-  <div id="completedSection"></div>
   <div class="empty" id="emptyState">
     <p>No leads yet.</p>
     <p>Open "Load a new batch" above and paste in the JSON from tonight's run.</p>
@@ -325,6 +331,7 @@
   const HIDE_ARCHIVED_KEY = 'hideArchived';
   const STATUS_RANK = {new:0, contacted:1, replied:2, won:3, dead:4};
   let currentNiche = 'all';
+  let currentView = 'todo'; // 'todo' | 'completed'
 
   function getRecords(){
     try { return JSON.parse(localStorage.getItem(LEADS_KEY) || '{}'); }
@@ -332,6 +339,36 @@
   }
   function saveRecords(r){
     localStorage.setItem(LEADS_KEY, JSON.stringify(r));
+  }
+
+  // One-time upgrade path: the previous version of this file stored data under
+  // 'leadBatch'/'leadStatuses'. If that data exists and nothing has been saved
+  // yet under the new key, pull it across so nothing gets silently orphaned.
+  function migrateLegacyData(){
+    if(localStorage.getItem(LEADS_KEY)) return;
+    const legacyBatchRaw = localStorage.getItem('leadBatch');
+    if(!legacyBatchRaw) return;
+    try{
+      const legacyBatch = JSON.parse(legacyBatchRaw);
+      const legacyStatuses = JSON.parse(localStorage.getItem('leadStatuses') || '{}');
+      if(!legacyBatch.leads || !Array.isArray(legacyBatch.leads)) return;
+      const records = {};
+      legacyBatch.leads.forEach(l=>{
+        if(!l.id) return;
+        records[l.id] = Object.assign({}, l, {
+          status: legacyStatuses[l.id] || 'new',
+          dateAdded: legacyBatch.batchDate || null,
+          lastSeenBatch: legacyBatch.batchDate || null,
+          emailSent: false,
+          dmSent: false,
+          debrief: ''
+        });
+      });
+      if(Object.keys(records).length){
+        saveRecords(records);
+        if(legacyBatch.batchDate) localStorage.setItem(LAST_BATCH_KEY, legacyBatch.batchDate);
+      }
+    }catch(e){ /* legacy data unreadable — nothing to migrate, carry on */ }
   }
 
   function loadBatch(){
@@ -495,6 +532,7 @@
     const listEl = document.getElementById('leadList');
     const emptyEl = document.getElementById('emptyState');
     const toolbarEl = document.getElementById('toolbar');
+    const viewTabsEl = document.getElementById('viewTabs');
     const filtersEl = document.getElementById('filters');
     const dateEl = document.getElementById('batchDate');
     const statsEl = document.getElementById('stats');
@@ -507,6 +545,7 @@
       emptyEl.style.display = 'block';
       emptyEl.querySelector('p:first-child').textContent = 'No leads yet.';
       toolbarEl.style.display = 'none';
+      viewTabsEl.style.display = 'none';
       statsEl.innerHTML = '';
       return;
     }
@@ -547,31 +586,28 @@
       return (b.dateAdded||'').localeCompare(a.dateAdded||'');
     });
 
-    if(visible.length === 0){
+    const notSent = visible.filter(l => !l.emailSent && !l.dmSent);
+    const sentList = visible.filter(l => l.emailSent || l.dmSent);
+
+    viewTabsEl.style.display = 'flex';
+    viewTabsEl.querySelector('[data-view="todo"]').classList.toggle('active', currentView === 'todo');
+    viewTabsEl.querySelector('[data-view="todo"]').textContent = `To send (${notSent.length})`;
+    viewTabsEl.querySelector('[data-view="completed"]').classList.toggle('active', currentView === 'completed');
+    viewTabsEl.querySelector('[data-view="completed"]').textContent = `Completed (${sentList.length})`;
+
+    const activeList = currentView === 'completed' ? sentList : notSent;
+
+    if(activeList.length === 0){
       listEl.innerHTML = '';
-      document.getElementById('completedSection').innerHTML = '';
       emptyEl.style.display = 'block';
-      emptyEl.querySelector('p:first-child').textContent = 'No leads match this filter.';
+      emptyEl.querySelector('p:first-child').textContent = currentView === 'completed'
+        ? 'Nothing marked as sent yet.'
+        : 'Nothing left to send in this filter.';
       return;
     }
     emptyEl.style.display = 'none';
 
-    const notSent = visible.filter(l => !l.emailSent && !l.dmSent);
-    const sentList = visible.filter(l => l.emailSent || l.dmSent);
-
-    listEl.innerHTML = notSent.map(l => renderCard(l, false)).join('')
-      || `<div class="empty"><p>Everything in this filter has been sent — check "Completed" below.</p></div>`;
-
-    const completedEl = document.getElementById('completedSection');
-    if(sentList.length === 0){
-      completedEl.innerHTML = '';
-    } else {
-      completedEl.innerHTML = `
-        <details class="completed-toggle" open>
-          <summary>Completed (${sentList.length})</summary>
-          ${sentList.map(l => renderCard(l, true)).join('')}
-        </details>`;
-    }
+    listEl.innerHTML = activeList.map(l => renderCard(l, currentView === 'completed')).join('');
   }
 
   // Event delegation — no inline onclick/onchange anywhere, so nothing breaks
@@ -591,6 +627,9 @@
       loadBatch();
     } else if(action === 'clear'){
       clearAll();
+    } else if(action === 'switch-view'){
+      currentView = btn.dataset.view;
+      render();
     } else if(action === 'copy'){
       const records = getRecords();
       const rec = records[btn.dataset.id];
@@ -660,6 +699,7 @@
     }
   });
 
+  migrateLegacyData();
   render();
 </script>
 </body>
