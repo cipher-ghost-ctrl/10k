@@ -212,6 +212,7 @@
     cursor:pointer;
   }
   .linklike:hover{color:var(--gold);}
+  .linklike.danger:hover{color:var(--red);}
 
   .card-actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px;}
   select{
@@ -429,7 +430,19 @@
   }
 
   function niceNiche(n){
-    const map = {trades:'Trades', retail:'Retail', health_fitness:'Health & Fitness'};
+    const map = {
+      trades: 'Trades',
+      retail: 'Retail',
+      health_fitness: 'Health & Fitness',
+      hospitality: 'Hospitality',
+      beauty: 'Beauty',
+      pet_services: 'Pet Services',
+      events_weddings: 'Events & Weddings',
+      automotive: 'Automotive',
+      property_services: 'Property Services',
+      professional_services: 'Professional Services',
+      education_childcare: 'Education & Childcare'
+    };
     return map[n] || 'Other';
   }
 
@@ -522,6 +535,7 @@
             <option value="won" ${status==='won'?'selected':''}>Won</option>
             <option value="dead" ${status==='dead'?'selected':''}>Dead</option>
           </select>
+          <button class="linklike danger" data-action="delete-lead" data-id="${id}" data-name="${escapeHtml(l.name||'this lead')}">Remove</button>
         </div>
         ${debriefHtml}
       </div>`;
@@ -657,6 +671,12 @@
           setTimeout(()=>{ btn.textContent = original; }, 1400);
         });
       }
+    } else if(action === 'delete-lead'){
+      if(!confirm(`Remove "${btn.dataset.name}" from your pipeline? This can't be undone.`)) return;
+      const records = getRecords();
+      delete records[btn.dataset.id];
+      saveRecords(records);
+      render();
     }
   });
 
