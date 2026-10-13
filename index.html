@@ -185,6 +185,15 @@
   .badge.outdated{background:rgba(201,168,76,0.15);color:var(--gold);}
   .badge.unclear{background:rgba(154,154,159,0.15);color:var(--text-dim);}
   .badge.niche{background:rgba(95,143,217,0.15);color:var(--blue);}
+  .badge.fallback{background:rgba(201,168,76,0.12);color:var(--text-dim);border:1px dashed var(--border);}
+
+  .run-notes{
+    font-family:'DM Mono',monospace;
+    font-size:0.72rem;
+    color:var(--text-dim);
+    margin-top:4px;
+    max-width:560px;
+  }
 
   .angle{font-size:0.88rem;color:var(--text);margin:12px 0;line-height:1.5;}
   .angle b{color:var(--text-dim);font-weight:500;font-size:0.75rem;font-family:'DM Mono',monospace;display:block;margin-bottom:3px;}
@@ -290,6 +299,7 @@
     <div>
       <h1>Batch</h1>
       <div class="date" id="batchDate">No leads yet</div>
+      <div class="run-notes" id="runNotesLine" style="display:none;"></div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -330,6 +340,7 @@
   const LEADS_KEY = 'leadRecords_v2';
   const LAST_BATCH_KEY = 'lastBatchDate';
   const HIDE_ARCHIVED_KEY = 'hideArchived';
+  const RUN_NOTES_KEY = 'lastRunNotes';
   const STATUS_RANK = {new:0, contacted:1, replied:2, won:3, dead:4};
   let currentNiche = 'all';
   let currentView = 'todo'; // 'todo' | 'completed'
@@ -406,6 +417,12 @@
       });
       saveRecords(records);
       if(data.batchDate) localStorage.setItem(LAST_BATCH_KEY, data.batchDate);
+      // runNotes is a new, optional top-level field (slugs used, dry slugs
+      // skipped, quotaHit, maps-vs-fallback counts). Older batches won't have
+      // it, so only touch the stored value when this batch actually sent one.
+      if(typeof data.runNotes === 'string' && data.runNotes.trim()){
+        localStorage.setItem(RUN_NOTES_KEY, data.runNotes.trim());
+      }
 
       errEl.style.display = 'none';
       document.getElementById('loadPanel').open = false;
@@ -420,6 +437,7 @@
     if(!confirm('This clears every saved lead and status, not just the last batch. Continue?')) return;
     localStorage.removeItem(LEADS_KEY);
     localStorage.removeItem(LAST_BATCH_KEY);
+    localStorage.removeItem(RUN_NOTES_KEY);
     render();
   }
 
@@ -431,6 +449,7 @@
 
   function niceNiche(n){
     const map = {
+      // Original broad buckets — kept so any already-loaded leads still show a proper label
       trades: 'Trades',
       retail: 'Retail',
       health_fitness: 'Health & Fitness',
@@ -441,7 +460,22 @@
       automotive: 'Automotive',
       property_services: 'Property Services',
       professional_services: 'Professional Services',
-      education_childcare: 'Education & Childcare'
+      education_childcare: 'Education & Childcare',
+      // Hyperspecific niches matching the h-builds-v5 demo pages
+      electrician: 'Electrician',
+      plumbing_heating: 'Plumbing & Heating',
+      painting_decorating: 'Painter & Decorator',
+      bricklaying_masonry: 'Bricklaying & Masonry',
+      construction_roofing: 'Construction & Roofing',
+      landscaping_gardening: 'Landscaping & Gardening',
+      barbershop: 'Barbershop',
+      dentist: 'Dentist',
+      physiotherapists: 'Physiotherapists',
+      accountants: 'Accountants',
+      law_firms: 'Law Firms',
+      real_estate: 'Real Estate',
+      restaurants: 'Restaurants',
+      financial_advisers: 'Financial Advisers'
     };
     return map[n] || 'Other';
   }
@@ -503,6 +537,7 @@
           <div class="badge-group">
             <span class="badge niche">${escapeHtml(niceNiche(l.niche))}</span>
             <span class="badge ${l.websiteStatus||'unclear'}">${escapeHtml((l.websiteStatus||'unclear').replace('_',' '))}</span>
+            ${l.dataSource === 'fallback' ? '<span class="badge fallback" title="Sourced without live Maps data — double-check rating/review count yourself">fallback source</span>' : ''}
           </div>
         </div>
         ${notesHtml ? `<div class="notes">${notesHtml}</div>` : ''}
@@ -554,6 +589,15 @@
 
     const lastBatch = localStorage.getItem(LAST_BATCH_KEY);
     dateEl.textContent = lastBatch ? ('Last batch loaded — ' + lastBatch) : (ids.length ? 'Batch' : 'No leads yet');
+
+    const runNotesEl = document.getElementById('runNotesLine');
+    const runNotes = localStorage.getItem(RUN_NOTES_KEY);
+    if(runNotes){
+      runNotesEl.textContent = runNotes;
+      runNotesEl.style.display = 'block';
+    } else {
+      runNotesEl.style.display = 'none';
+    }
 
     if(ids.length === 0){
       listEl.innerHTML = '';
